@@ -41,16 +41,20 @@ jobs:
         image: ubuntu-2004:202010-01
       steps:
         - aws-ecr/build-and-push-image:
+            create-repo: true
             repo: backend 
-            path: /home/circleci/kura-gr5/backend/
+            path: /home/circleci/project/backend/
+            tag: ${CIRCLE_BUILD_NUM}
 
   deploy_ecr_frontend:
       machine: 
         image: ubuntu-2004:202010-01
       steps:
         - aws-ecr/build-and-push-image:
-            repo: frontend 
-            path: /home/circleci/kura-gr5//frontend/
+            create-repo: true
+            repo: frontend
+            path: /home/circleci/project/frontend/
+            tag: ${CIRCLE_BUILD_NUM}
 
 workflows:
   version: 2
