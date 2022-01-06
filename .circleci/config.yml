@@ -1,9 +1,11 @@
 version: 2.1
+
 orbs:
-  aws-ecr: circleci/aws-ecr@6.12.2
+  aws-ecr: circleci/aws-ecr@7.3.0
   aws-ecs: circleci/aws-ecs@1.3.0
+
 jobs:
-  build_and_test_backend:
+  build_test_backend:
     docker:
       - image: circleci/python:3.7.4
     steps:
@@ -23,7 +25,7 @@ jobs:
       - store_artifacts:
           path: test-reports
            
-  build_and_test_frontend:
+  build_test_frontend:
       docker:
         - image: nginx
       steps:
@@ -32,37 +34,36 @@ jobs:
             name: copying file
             command: |
               cd frontend/
-              cp -r ~/project/frontend/. /usr/share/nginx/html
+              cp -r . /usr/share/nginx/html
 
-  build_and_push_to_ECR:
-      docker:
-        - image: ubuntu-2004:202010-01
+  deploy_ecr_backend:
+      machine: 
+        image: ubuntu-2004:202010-01
       steps:
-#       - checkout
-        - aws-ecr/build_and_push_to_ECR:
-            account-url: ${AWS_ECR_ACCOUNT_URL}
-            aws-access-key-id: ${AWS_ACCESS_KEY_ID}
-            aws-secret-access-key: ${AWS_SECRET_ACCESS_KEY}
-            region: ${AWS_DEFAULT_REGION}
-            repo: ${CIRCLE_PROJECT_REPONAME}
-    #         create-repo: true
-            checkout: true
-            dockerfile: Dockerfile
-            path: ./project/backend/
-            tag: ${CIRCLE_SHA1}
+        - aws-ecr/build-and-push-image:
+            repo: backend 
+            path: /home/circleci/kura-gr5/backend/
+
+  deploy_ecr_frontend:
+      machine: 
+        image: ubuntu-2004:202010-01
+      steps:
+        - aws-ecr/build-and-push-image:
+            repo: frontend 
+            path: /home/circleci/kura-gr5//frontend/
 
 workflows:
   version: 2
-  build_and_test:
+  build_test_deploy_frontend:
     jobs:
-      - build_and_test_frontend
-      - build_and_test_backend
-
-  build_and_test2:
-    version: 2
-    push ECR:
-    jobs:
-      - build_and_push_to_ECR
-         
-
+      - build_test_frontend
+      - deploy_ecr_frontend:
+         requires:
+            - build_test_frontend
       
+  build_test_deploy_backend:
+    jobs:
+      - build_test_backend
+      - deploy_ecr_backend:
+         requires:
+            - build_test_backend
