@@ -43,7 +43,7 @@ jobs:
         - aws-ecr/build-and-push-image:
             create-repo: true
             repo: backend 
-            path: /home/circleci/project/backend/
+            path: /home/circleci/final/backend/
             tag: ${CIRCLE_BUILD_NUM}
 
   deploy_ecr_frontend:
@@ -53,7 +53,7 @@ jobs:
         - aws-ecr/build-and-push-image:
             create-repo: true
             repo: frontend
-            path: /home/circleci/project/frontend/
+            path: /home/circleci/final/frontend/
             tag: ${CIRCLE_BUILD_NUM}
 
 workflows:
