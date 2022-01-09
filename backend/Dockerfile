@@ -1,4 +1,4 @@
-FROM python:3.10
+FROM python:latest
 RUN apt-get update
 RUN mkdir /backend
 WORKDIR /backend
