@@ -44,7 +44,7 @@ jobs:
             create-repo: true
             repo: backend 
             path: /home/circleci/final/backend/
-            tag: ${CIRCLE_BUILD_NUM}
+            tag: 'latest-${CIRCLE_BUILD_NUM}'
 
   deploy_ecr_frontend:
       machine: 
@@ -54,7 +54,7 @@ jobs:
             create-repo: true
             repo: frontend
             path: /home/circleci/final/frontend/
-            tag: ${CIRCLE_BUILD_NUM}
+            tag: 'latest-${CIRCLE_BUILD_NUM}'
 
 workflows:
   version: 2
