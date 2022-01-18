@@ -1,11 +1,26 @@
-version: 2.1
-
+version: '2.1'
 orbs:
-  aws-ecr: circleci/aws-ecr@7.3.0
-  aws-ecs: circleci/aws-ecs@1.3.0
+  aws-ecr: circleci/aws-ecr@0.0.4
+  slack: circleci/slack@4.1
+
+workflows:
+  build_test_deploy:
+    jobs:
+      - build_test
+      - aws-ecr/build_and_push_image:
+          region: ${AWS_DEFAULT_REGION}
+          account-url: ${AWS_ECR_ACCOUNT_URL}
+          repo: circleci
+          tag: image-${CIRCLE_BUILD_NUM}
+          requires:
+            - build_test
+  send-notification:
+    jobs:
+      - notify:
+          context: ei-circleci-alerts
 
 jobs:
-  build_test_backend:
+  build_test:
     docker:
       - image: circleci/python:3.7.4
     steps:
@@ -13,7 +28,7 @@ jobs:
       - run:
           name: Install Python dependencies
           command: |
-            cd backend/
+            cd microservices/nginx/frontend/backend/
             echo 'export PATH=~$PATH:~/.local/bin' >> $BASH_ENV && source $BASH_ENV
             pip install --user -r requirements.txt
       - run:
@@ -24,50 +39,25 @@ jobs:
           path: test-reports
       - store_artifacts:
           path: test-reports
-           
-  build_test_frontend:
-      docker:
-        - image: nginx
-      steps:
-        - checkout
-        - run:
-            name: copying file
-            command: |
-              cd frontend/
-              cp -r . /usr/share/nginx/html
 
-  deploy_ecr_backend:
-      machine: 
-        image: ubuntu-2004:202010-01
-      steps:
-        - aws-ecr/build-and-push-image:
-            create-repo: true
-            repo: backend 
-            path: /home/circleci/final/backend/
-            tag: 'latest-${CIRCLE_BUILD_NUM}'
-
-  deploy_ecr_frontend:
-      machine: 
-        image: ubuntu-2004:202010-01
-      steps:
-        - aws-ecr/build-and-push-image:
-            create-repo: true
-            repo: frontend
-            path: /home/circleci/final/frontend/
-            tag: 'latest-${CIRCLE_BUILD_NUM}'
-
-workflows:
-  version: 2
-  build_test_deploy_frontend:
-    jobs:
-      - build_test_frontend
-      - deploy_ecr_frontend:
-         requires:
-            - build_test_frontend
-      
-  build_test_deploy_backend:
-    jobs:
-      - build_test_backend
-      - deploy_ecr_backend:
-         requires:
-            - build_test_backend
+  notify:
+    docker:
+      - image: 'cimg/base:stable'
+    steps:
+      - slack/notify:
+          custom: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "plain_text",
+                      "text": "*This is a text notification*",
+                      "emoji": true
+                    }
+                  ]
+                }
+              ]
+            }
+          event: always
