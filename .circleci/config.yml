@@ -44,9 +44,6 @@ jobs:
       - checkout
       - setup_remote_docker
       - run:
-          name: Install dependencies for project
-          command: gradle assemble
-      - run:
           name: Install dependencies for AWS
           command: |
             sudo apt-get update -y
