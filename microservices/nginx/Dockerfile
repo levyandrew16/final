@@ -23,3 +23,5 @@ RUN nginx -t
 
 #Copy the frontend (backend is inside frontend) files
 COPY ./frontend/ /usr/share/nginx/html/
+
+EXPOSE 80
