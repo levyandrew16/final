@@ -3,20 +3,14 @@ orbs:
   aws-ecr: circleci/aws-ecr@0.0.4
   slack: circleci/slack@4.1
 
-working_directory: /microservices/nginx
 workflows:
-   
   build_test_deploy:
     jobs:
       - build_test
-      
-      - aws-ecr/build_and_push_image:
-          region: ${AWS_REGION}
-          account-url: ${AWS_ECR_ACCOUNT_URL}
-          repo: circleci
-          tag: image-${CIRCLE_BUILD_NUM}
+      - build_and_deploy:
           requires:
-            - build_test   
+            - build_test  
+
   send-notification:
     jobs:
       - notify:
@@ -42,6 +36,34 @@ jobs:
           path: test-reports
       - store_artifacts:
           path: test-reports
+
+  build_and_deploy:
+    docker:
+      - image: circleci/openjdk:8-jdk
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Install dependencies for project
+          command: gradle assemble
+      - run:
+          name: Install dependencies for AWS
+          command: |
+            sudo apt-get update -y
+            sudo apt-get -y -qq install awscli
+            sudo apt-get install python3-pip
+            sudo pip3 install --upgrade awscli
+      - run:
+          name: Build image
+          command: |
+            docker build -t $IMAGE_NAME /microservices/nginx .
+      - run:
+          name: Push image
+          command: |
+            eval $(aws ecr get-login --region $AWS_REGION --no-include-email)
+            docker push $IMAGE_NAME
+            region: ${AWS_REGION}
+        
 
   notify:
     docker:
