@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   #terraform orb
-  terraform: circleci/terraform@dev:alpha
+  terraform: circleci/terraform@3.0.0
   aws-ecr: circleci/aws-ecr@7.3.0
   aws-ecs: circleci/aws-ecs@1.3.0
 
