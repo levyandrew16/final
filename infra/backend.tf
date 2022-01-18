@@ -4,5 +4,6 @@ terraform {
       bucket = "terraform-remote-state-kuragrp5"
       key = "inventorize/infrastructure.tfstate"
       region = "us-east-1"
+      dynamodb_table = "gr5-terraform-lock"
   }
 }
