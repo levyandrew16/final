@@ -23,12 +23,23 @@ resource "aws_instance" "appserver1" {
   sudo apt install docker-compose
   sudo usermod -a -G docker ubuntu
   EOL
-  
+
   tags = {
     Name = "App Server 1a"
   }
 
+  depends_on = [aws_nat_gateway.NAT]
+
 }
+
+#Elastic IP for App Server 1a
+resource "aws_eip" "app_eip" {
+  instance = aws_instance.appserver1.id
+  
+  tags = {
+    Name = "app-eip" 
+    }
+  }
 
 resource "aws_instance" "appserver2" {
   ami                    = "ami-0d5eff06f840b45e9"
@@ -37,7 +48,6 @@ resource "aws_instance" "appserver2" {
   availability_zone      = "us-east-1b"
   vpc_security_group_ids = [aws_security_group.webserver-sg.id]
   subnet_id              = aws_subnet.application-subnet-1b.id
-  #user_data              = file("install_docker.sh")
 
   tags = {
     Name = "App Server 1b"
